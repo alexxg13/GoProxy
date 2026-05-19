@@ -9,11 +9,12 @@ import (
 
 type (
 	Config struct {
-		App  App
-		HTTP HTTP
-		Log  Log
-		DB   DB
-		JWT  JWT
+		App   App
+		HTTP  HTTP
+		Log   Log
+		DB    DB
+		JWT   JWT
+		Proxy Proxy
 	}
 	App struct {
 		Env string `env:"APP_ENV" envDefault:"dev"`
@@ -35,6 +36,9 @@ type (
 	}
 	JWT struct {
 		Secret string `env:"JWT_SECRET" envDefault:"secret"`
+	}
+	Proxy struct {
+		BackendURL string `env:"PROXY_BACKEND_URL" envDefault:"http://localhost:8080"`
 	}
 )
 
