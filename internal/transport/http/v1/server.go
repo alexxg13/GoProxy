@@ -2,6 +2,7 @@ package v1
 
 import (
 	"GoProxy/config"
+	middleware2 "GoProxy/internal/transport/http/middleware"
 	"context"
 	"fmt"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"net/url"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -20,7 +22,7 @@ type Server struct {
 	proxy    *httputil.ReverseProxy
 }
 
-func NewServer(cfg config.Config, handlers *Handlers) *Server {
+func NewServer(cfg config.Config, handlers *Handlers, proxyMW *middleware2.ProxyMiddleware, baseCtx context.Context) *Server {
 	if cfg.App.Env == "dev" {
 		gin.SetMode(gin.DebugMode)
 	} else if cfg.App.Env == "prod" {
@@ -28,15 +30,23 @@ func NewServer(cfg config.Config, handlers *Handlers) *Server {
 	}
 	engine := gin.New()
 	engine.Use(gin.Recovery())
-	engine.Use(gin.Logger())
+	engine.Use(middleware2.RequestContext(baseCtx))
+	engine.Use(proxyMW.Handle())
 
 	backendURL := cfg.Proxy.BackendURL
-	url, _ := url.Parse(backendURL)
-	proxy := httputil.NewSingleHostReverseProxy(url)
+	target, err := url.Parse(backendURL)
+	if err != nil {
+		panic(fmt.Sprintf("invalid backend URL: %v", err))
+	}
+	proxy := httputil.NewSingleHostReverseProxy(target)
 	originalDirector := proxy.Director
 	proxy.Director = func(req *http.Request) {
 		originalDirector(req)
-		req.Host = url.Host
+		req.Host = target.Host
+	}
+	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		middleware2.RecordUpstreamError(r, err)
+		http.Error(w, "upstream unavailable", http.StatusBadGateway)
 	}
 
 	srv := http.Server{
@@ -45,11 +55,14 @@ func NewServer(cfg config.Config, handlers *Handlers) *Server {
 		ReadTimeout:  cfg.HTTP.ReadTimeout,
 		WriteTimeout: cfg.HTTP.WriteTimeout,
 	}
-	return &Server{
+	s := &Server{
 		srv:      &srv,
 		engine:   engine,
 		handlers: handlers,
+		proxy:    proxy,
 	}
+	s.RegisterHandlers()
+	return s
 }
 
 func (s *Server) Run() error {
@@ -62,7 +75,9 @@ func (s *Server) Shutdown(ctx context.Context) error {
 
 func (s *Server) RegisterHandlers() {
 	s.engine.GET("/_info", func(c *gin.Context) { c.String(200, "ok") })
+	s.engine.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	s.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	s.engine.POST("/captcha/verify", s.handlers.IPHandler.VerifyCaptcha)
 
 	protected := s.engine.Group("/admin")
 	{
@@ -72,10 +87,12 @@ func (s *Server) RegisterHandlers() {
 			metrics.GET("/cache", s.handlers.MetricsHandler.GetCacheMetrics)
 			metrics.GET("/system", s.handlers.MetricsHandler.GetSystemMetrics)
 		}
+		protected.POST("/cache/invalidate", s.handlers.MetricsHandler.InvalidateCache)
 
 		ip := protected.Group("/ip-rules")
 		{
 			ip.GET("", s.handlers.IPHandler.GetIPRules)
+			ip.GET("/check", s.handlers.IPHandler.CheckIPAccess)
 			ip.POST("", s.handlers.IPHandler.CreateIPRule)
 			ip.DELETE("/:ruleId", s.handlers.IPHandler.DeleteIPRule)
 		}

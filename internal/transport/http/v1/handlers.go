@@ -14,11 +14,14 @@ type (
 	MetricsHandler interface {
 		GetProxyMetrics(c *gin.Context)
 		GetCacheMetrics(c *gin.Context)
+		InvalidateCache(c *gin.Context)
 		GetSystemMetrics(c *gin.Context)
 	}
 
 	IPHandler interface {
 		GetIPRules(c *gin.Context)
+		CheckIPAccess(c *gin.Context)
+		VerifyCaptcha(c *gin.Context)
 		CreateIPRule(c *gin.Context)
 		DeleteIPRule(c *gin.Context)
 	}
