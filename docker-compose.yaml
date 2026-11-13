@@ -1,0 +1,35 @@
+services:
+  proxy:
+    build: .
+    container_name: proxy
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./.env:/app/.env
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    container_name: proxy-prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deployments/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - proxy
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: proxy-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_DEFAULT_THEME: light
+    volumes:
+      - ./deployments/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deployments/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
