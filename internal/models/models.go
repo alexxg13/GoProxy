@@ -105,6 +105,8 @@ type UpstreamServer struct {
 type RateLimitConfig struct {
 	RPS            int `json:"rps"`
 	RPM            int `json:"rpm"`
+	RPH            int `json:"rph"`
+	RPD            int `json:"rpd"`
 	MaxConnections int `json:"maxConnections"`
 	BanDuration    int `json:"banDuration"`
 }

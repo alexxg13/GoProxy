@@ -848,6 +848,12 @@ const docTemplate = `{
                 "maxConnections": {
                     "type": "integer"
                 },
+                "rpd": {
+                    "type": "integer"
+                },
+                "rph": {
+                    "type": "integer"
+                },
                 "rpm": {
                     "type": "integer"
                 },

@@ -52,7 +52,9 @@ CACHE_DEFAULT_TTL=6m
 CACHE_MAX_BODY=1234
 RATE_LIMIT_RPS=7
 RATE_LIMIT_RPM=8
-RATE_LIMIT_MAX_CONN=9
+RATE_LIMIT_RPH=9
+RATE_LIMIT_RPD=10
+RATE_LIMIT_MAX_CONN=11
 RATE_LIMIT_BAN_SEC=10
 `), 0o644)
 	if err != nil {
@@ -68,6 +70,9 @@ RATE_LIMIT_BAN_SEC=10
 	}
 	if cfg.IPAccess.CaptchaTTL != 5*time.Minute || cfg.RateLimit.BanDuration != 10 {
 		t.Fatalf("unexpected durations: captcha=%s ban=%d", cfg.IPAccess.CaptchaTTL, cfg.RateLimit.BanDuration)
+	}
+	if cfg.RateLimit.RPH != 9 || cfg.RateLimit.RPD != 10 || cfg.RateLimit.MaxConnections != 11 {
+		t.Fatalf("unexpected rate limits: %+v", cfg.RateLimit)
 	}
 }
 

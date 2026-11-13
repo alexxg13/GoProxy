@@ -138,7 +138,7 @@ func TestRatelimiterHandlerEndpoints(t *testing.T) {
 		t.Fatalf("expected 200, got %d", w.Code)
 	}
 
-	c, w = testContext(http.MethodPatch, "/admin/rate-limit/config", `{"rps":10,"rpm":20,"maxConnections":30,"banDuration":40}`)
+	c, w = testContext(http.MethodPatch, "/admin/rate-limit/config", `{"rps":10,"rpm":20,"rph":30,"rpd":40,"maxConnections":50,"banDuration":60}`)
 	h.UpdateRateLimitConfig(c)
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d body=%s", w.Code, w.Body.String())

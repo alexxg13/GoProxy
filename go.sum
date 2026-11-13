@@ -6,8 +6,6 @@ github.com/PuerkitoBio/purell v1.1.1 h1:WEQqlqaGbrPkxLJWfBwQmfEAE1Z7ONdDLqrN38tN
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV/sSk/8dngufqelfh6jnri85riMAaF/M=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
-github.com/alexxg13/go-utils v1.0.1 h1:xeBpXOEzP2vf/xaI/qzBOKLZwiQlNdZ+KfZ5QvBito0=
-github.com/alexxg13/go-utils v1.0.1/go.mod h1:e17SqeBpq2fdW6I1PNhbk2LD9X1tRYnwf9+nmB5RqyI=
 github.com/alexxg13/go-utils v1.1.0 h1:wQoYVGOuSkL1VJlK2Ump40ytlm+3KJbQSG9RtU/exwA=
 github.com/alexxg13/go-utils v1.1.0/go.mod h1:e17SqeBpq2fdW6I1PNhbk2LD9X1tRYnwf9+nmB5RqyI=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=

@@ -209,5 +209,5 @@ func ShouldCache(status int, cacheControl string) bool {
 			return false
 		}
 	}
-	return status >= 200 && status < 300
+	return status >= 200 && status < 400
 }

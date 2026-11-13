@@ -32,6 +32,8 @@ func (h *RatelimiterHandler) GetRateLimitConfig(c *gin.Context) {
 		Data: dto.RateLimitFromDomain(models.RateLimitConfig{
 			RPS:            cfg.RPS,
 			RPM:            cfg.RPM,
+			RPH:            cfg.RPH,
+			RPD:            cfg.RPD,
 			MaxConnections: cfg.MaxConnections,
 			BanDuration:    int(cfg.BanDuration.Seconds()),
 		}),
@@ -58,6 +60,8 @@ func (h *RatelimiterHandler) UpdateRateLimitConfig(c *gin.Context) {
 	h.limiter.UpdateConfig(ratelimit.Config{
 		RPS:            domainCfg.RPS,
 		RPM:            domainCfg.RPM,
+		RPH:            domainCfg.RPH,
+		RPD:            domainCfg.RPD,
 		MaxConnections: domainCfg.MaxConnections,
 		BanDuration:    time.Duration(domainCfg.BanDuration) * time.Second,
 	})

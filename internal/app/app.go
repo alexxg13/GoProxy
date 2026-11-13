@@ -59,6 +59,8 @@ func Run(cfg *config.Config) {
 	limiter := ratelimit.New(ratelimit.Config{
 		RPS:            cfg.RateLimit.RPS,
 		RPM:            cfg.RateLimit.RPM,
+		RPH:            cfg.RateLimit.RPH,
+		RPD:            cfg.RateLimit.RPD,
 		MaxConnections: cfg.RateLimit.MaxConnections,
 		BanDuration:    time.Duration(cfg.RateLimit.BanDuration) * time.Second,
 	})

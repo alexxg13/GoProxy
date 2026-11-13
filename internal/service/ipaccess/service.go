@@ -1,10 +1,14 @@
 package ipaccess
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/netip"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +16,7 @@ import (
 	iputils "GoProxy/pkg/ip-utils"
 	"GoProxy/pkg/lrucache"
 
+	"github.com/BurntSushi/toml"
 	"github.com/fsnotify/fsnotify"
 	"gopkg.in/yaml.v3"
 )
@@ -28,10 +33,10 @@ type cachedDecision struct {
 }
 
 type fileConfig struct {
-	DefaultPolicy string   `yaml:"default_policy"`
-	Allow         []string `yaml:"allow"`
-	Deny          []string `yaml:"deny"`
-	Grey          []string `yaml:"grey"`
+	DefaultPolicy string   `yaml:"default_policy" json:"default_policy" toml:"default_policy"`
+	Allow         []string `yaml:"allow" json:"allow" toml:"allow"`
+	Deny          []string `yaml:"deny" json:"deny" toml:"deny"`
+	Grey          []string `yaml:"grey" json:"grey" toml:"grey"`
 }
 type IPService interface {
 	Check(ctx context.Context, ipStr string) Decision
@@ -267,8 +272,8 @@ func (s *IPServiceImpl) loadFromFile(path string) error {
 		return err
 	}
 
-	var cfg fileConfig
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
+	cfg, err := parseFileConfig(path, data)
+	if err != nil {
 		return fmt.Errorf("parse config: %w", err)
 	}
 
@@ -319,11 +324,45 @@ func (s *IPServiceImpl) persistLocked() {
 		}
 	}
 
-	data, err := yaml.Marshal(cfg)
+	data, err := marshalFileConfig(s.configPath, cfg)
 	if err != nil {
 		return
 	}
 	_ = os.WriteFile(s.configPath, data, 0o644)
+}
+
+func parseFileConfig(path string, data []byte) (fileConfig, error) {
+	var cfg fileConfig
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".json":
+		if err := json.Unmarshal(data, &cfg); err != nil {
+			return fileConfig{}, err
+		}
+	case ".toml":
+		if err := toml.Unmarshal(data, &cfg); err != nil {
+			return fileConfig{}, err
+		}
+	default:
+		if err := yaml.Unmarshal(data, &cfg); err != nil {
+			return fileConfig{}, err
+		}
+	}
+	return cfg, nil
+}
+
+func marshalFileConfig(path string, cfg fileConfig) ([]byte, error) {
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".json":
+		return json.MarshalIndent(cfg, "", "  ")
+	case ".toml":
+		var buf bytes.Buffer
+		if err := toml.NewEncoder(&buf).Encode(cfg); err != nil {
+			return nil, err
+		}
+		return buf.Bytes(), nil
+	default:
+		return yaml.Marshal(cfg)
+	}
 }
 
 func (s *IPServiceImpl) resetCache() {

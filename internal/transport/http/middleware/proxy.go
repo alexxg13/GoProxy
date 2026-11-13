@@ -70,6 +70,7 @@ func NewProxyMiddleware(
 func (m *ProxyMiddleware) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if strings.HasPrefix(c.Request.URL.Path, "/admin") ||
+			strings.HasPrefix(c.Request.URL.Path, "/example/ip_access") ||
 			strings.HasPrefix(c.Request.URL.Path, "/swagger") ||
 			strings.HasPrefix(c.Request.URL.Path, "/captcha") ||
 			c.Request.URL.Path == "/_info" ||

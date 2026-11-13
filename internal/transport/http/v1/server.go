@@ -108,6 +108,14 @@ func (s *Server) RegisterHandlers() {
 		}
 	}
 
+	example := s.engine.Group("/example/ip_access")
+	{
+		example.GET("/allowlists", s.handlers.IPHandler.GetIPRules)
+		example.POST("/allowlists", s.handlers.IPHandler.CreateIPRule)
+		example.DELETE("/allowlists/:ruleId", s.handlers.IPHandler.DeleteIPRule)
+		example.GET("/check", s.handlers.IPHandler.CheckIPAccess)
+	}
+
 	s.engine.NoRoute(func(c *gin.Context) {
 		s.proxy.ServeHTTP(c.Writer, c.Request)
 	})

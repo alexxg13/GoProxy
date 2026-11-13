@@ -58,13 +58,13 @@ func TestDomainConverters(t *testing.T) {
 		t.Fatalf("bad upstream conversion: %+v", upstream)
 	}
 
-	rate := RateLimitFromDomain(models.RateLimitConfig{RPS: 1, RPM: 2, MaxConnections: 3, BanDuration: 4})
-	if rate.RPS != 1 || rate.BanDuration != 4 {
+	rate := RateLimitFromDomain(models.RateLimitConfig{RPS: 1, RPM: 2, RPH: 3, RPD: 4, MaxConnections: 5, BanDuration: 6})
+	if rate.RPS != 1 || rate.RPH != 3 || rate.BanDuration != 6 {
 		t.Fatalf("bad rate limit conversion: %+v", rate)
 	}
 
 	domainRate := RateLimitToDomain(rate)
-	if domainRate.RPM != 2 || domainRate.MaxConnections != 3 {
+	if domainRate.RPM != 2 || domainRate.RPD != 4 || domainRate.MaxConnections != 5 {
 		t.Fatalf("bad domain rate limit conversion: %+v", domainRate)
 	}
 

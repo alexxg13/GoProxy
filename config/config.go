@@ -48,6 +48,8 @@ type (
 	RateLimit struct {
 		RPS            int `env:"RATE_LIMIT_RPS" envDefault:"100"`
 		RPM            int `env:"RATE_LIMIT_RPM" envDefault:"1000"`
+		RPH            int `env:"RATE_LIMIT_RPH" envDefault:"10000"`
+		RPD            int `env:"RATE_LIMIT_RPD" envDefault:"100000"`
 		MaxConnections int `env:"RATE_LIMIT_MAX_CONN" envDefault:"500"`
 		BanDuration    int `env:"RATE_LIMIT_BAN_SEC" envDefault:"3600"`
 	}

@@ -105,6 +105,10 @@ func TestRegisterHandlersRoutes(t *testing.T) {
 		{http.MethodGet, "/admin/rate-limit/config", http.StatusOK},
 		{http.MethodPatch, "/admin/rate-limit/config", http.StatusOK},
 		{http.MethodGet, "/admin/rate-limit/violators", http.StatusOK},
+		{http.MethodGet, "/example/ip_access/allowlists", http.StatusOK},
+		{http.MethodGet, "/example/ip_access/check?ip=1.2.3.4", http.StatusOK},
+		{http.MethodPost, "/example/ip_access/allowlists", http.StatusCreated},
+		{http.MethodDelete, "/example/ip_access/allowlists/1", http.StatusOK},
 	} {
 		req := httptest.NewRequest(tc.method, tc.path, nil)
 		w := httptest.NewRecorder()

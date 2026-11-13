@@ -25,12 +25,31 @@ func TestLimiterViolation(t *testing.T) {
 	}
 }
 
+func TestLimiterHourAndDayViolation(t *testing.T) {
+	for _, cfg := range []Config{
+		{RPH: 1},
+		{RPD: 1},
+	} {
+		l := New(cfg)
+		ip := "203.0.113.2"
+		if !l.Allow(ip) {
+			t.Fatal("first request should be allowed")
+		}
+		if l.Allow(ip) {
+			t.Fatalf("second request should be blocked for config %+v", cfg)
+		}
+	}
+}
+
 func TestLimiterUpdateConfig(t *testing.T) {
 	l := New(Config{RPS: 10})
-	l.UpdateConfig(Config{RPS: 200, BanDuration: time.Hour})
+	l.UpdateConfig(Config{RPS: 200, RPH: 300, RPD: 400, BanDuration: time.Hour})
 	cfg := l.Config()
 	if cfg.RPS != 200 {
 		t.Fatalf("expected 200, got %d", cfg.RPS)
+	}
+	if cfg.RPH != 300 || cfg.RPD != 400 {
+		t.Fatalf("unexpected hour/day limits: %+v", cfg)
 	}
 }
 

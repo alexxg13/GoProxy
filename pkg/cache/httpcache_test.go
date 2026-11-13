@@ -38,6 +38,9 @@ func TestShouldCache(t *testing.T) {
 	if !ShouldCache(200, "") {
 		t.Fatal("2xx should be cached")
 	}
+	if !ShouldCache(302, "") {
+		t.Fatal("3xx should be cached")
+	}
 	if ShouldCache(404, "") {
 		t.Fatal("4xx should not be cached by default")
 	}

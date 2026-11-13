@@ -37,6 +37,52 @@ grey: []
 	}
 }
 
+func TestServiceLoadsJSONAndTOML(t *testing.T) {
+	tests := []struct {
+		name string
+		file string
+		body string
+	}{
+		{
+			name: "json",
+			file: "rules.json",
+			body: `{"default_policy":"deny","allow":["192.168.1.1"],"deny":["10.0.0.0/8"],"grey":["203.0.113.1"]}`,
+		},
+		{
+			name: "toml",
+			file: "rules.toml",
+			body: `default_policy = "deny"
+allow = ["192.168.1.1"]
+deny = ["10.0.0.0/8"]
+grey = ["203.0.113.1"]
+`,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), tc.file)
+			if err := os.WriteFile(path, []byte(tc.body), 0o644); err != nil {
+				t.Fatal(err)
+			}
+
+			s, err := New(Config{ConfigPath: path, DefaultDeny: true, CacheCapacity: 100})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if d := s.Check(context.Background(), "192.168.1.1"); !d.Allowed {
+				t.Fatalf("allow list should permit for %s", tc.file)
+			}
+			if d := s.Check(context.Background(), "10.1.2.3"); d.Allowed || d.Reason != models.DenyBlacklisted {
+				t.Fatalf("deny list should block for %s: %+v", tc.file, d)
+			}
+			if d := s.Check(context.Background(), "203.0.113.1"); d.Allowed || !d.Grey {
+				t.Fatalf("grey list should require captcha for %s: %+v", tc.file, d)
+			}
+		})
+	}
+}
+
 func TestServiceCRUD(t *testing.T) {
 	s, err := New(Config{DefaultDeny: true, CacheCapacity: 100})
 	if err != nil {

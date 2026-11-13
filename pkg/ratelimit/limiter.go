@@ -20,6 +20,8 @@ type Violation struct {
 type Config struct {
 	RPS            int
 	RPM            int
+	RPH            int
+	RPD            int
 	MaxConnections int
 	BanDuration    time.Duration
 }
@@ -42,6 +44,8 @@ type LimiterImpl struct {
 type clientLimiter struct {
 	perSecond *rate.Limiter
 	perMinute *rate.Limiter
+	perHour   *rate.Limiter
+	perDay    *rate.Limiter
 	requests  int64
 }
 
@@ -116,6 +120,14 @@ func (l *LimiterImpl) Allow(ip string) bool {
 		l.recordViolation(ip, int64(l.cfg.RPM))
 		return false
 	}
+	if l.cfg.RPH > 0 && !cl.perHour.Allow() {
+		l.recordViolation(ip, int64(l.cfg.RPH))
+		return false
+	}
+	if l.cfg.RPD > 0 && !cl.perDay.Allow() {
+		l.recordViolation(ip, int64(l.cfg.RPD))
+		return false
+	}
 
 	return true
 }
@@ -143,6 +155,16 @@ func (l *LimiterImpl) newClientLimiter() *clientLimiter {
 	} else {
 		cl.perMinute = rate.NewLimiter(rate.Inf, 0)
 	}
+	if l.cfg.RPH > 0 {
+		cl.perHour = rate.NewLimiter(rate.Every(time.Hour/time.Duration(l.cfg.RPH)), l.cfg.RPH)
+	} else {
+		cl.perHour = rate.NewLimiter(rate.Inf, 0)
+	}
+	if l.cfg.RPD > 0 {
+		cl.perDay = rate.NewLimiter(rate.Every(24*time.Hour/time.Duration(l.cfg.RPD)), l.cfg.RPD)
+	} else {
+		cl.perDay = rate.NewLimiter(rate.Inf, 0)
+	}
 	return cl
 }
 
@@ -160,6 +182,8 @@ func (l *LimiterImpl) recordViolation(ip string, limit int64) {
 func setRateLimitConfigMetrics(cfg Config) {
 	rateLimitConfigGauge.WithLabelValues("rps").Set(float64(cfg.RPS))
 	rateLimitConfigGauge.WithLabelValues("rpm").Set(float64(cfg.RPM))
+	rateLimitConfigGauge.WithLabelValues("rph").Set(float64(cfg.RPH))
+	rateLimitConfigGauge.WithLabelValues("rpd").Set(float64(cfg.RPD))
 	rateLimitConfigGauge.WithLabelValues("max_connections").Set(float64(cfg.MaxConnections))
 	rateLimitConfigGauge.WithLabelValues("ban_seconds").Set(cfg.BanDuration.Seconds())
 }

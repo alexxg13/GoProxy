@@ -108,6 +108,8 @@ type UpstreamServer struct {
 type RateLimitConfig struct {
 	RPS            int `json:"rps"`
 	RPM            int `json:"rpm"`
+	RPH            int `json:"rph"`
+	RPD            int `json:"rpd"`
 	MaxConnections int `json:"maxConnections"`
 	BanDuration    int `json:"banDuration"`
 }
@@ -200,6 +202,8 @@ func RateLimitFromDomain(c models.RateLimitConfig) RateLimitConfig {
 	return RateLimitConfig{
 		RPS:            c.RPS,
 		RPM:            c.RPM,
+		RPH:            c.RPH,
+		RPD:            c.RPD,
 		MaxConnections: c.MaxConnections,
 		BanDuration:    c.BanDuration,
 	}
@@ -209,6 +213,8 @@ func RateLimitToDomain(c RateLimitConfig) models.RateLimitConfig {
 	return models.RateLimitConfig{
 		RPS:            c.RPS,
 		RPM:            c.RPM,
+		RPH:            c.RPH,
+		RPD:            c.RPD,
 		MaxConnections: c.MaxConnections,
 		BanDuration:    c.BanDuration,
 	}
